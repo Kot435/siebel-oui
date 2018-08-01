@@ -13,17 +13,21 @@ if (typeof(SiebelAppFacade.SISAccountEntryAppletPM) === "undefined") {
    
        SISAccountEntryAppletPM.prototype.Init = function () {
         SiebelAppFacade.SISAccountEntryAppletPM.superclass.Init.apply(this, arguments);
-        this.AddMethod("FieldChange", this.statusCheck, { sequence: false, scope: this });
+        this.AddMethod("FieldChange", this.statusCheck, {sequence:false, scope:this});
+        this.AddProperty("statusNotActive", false);
        }
    
        SISAccountEntryAppletPM.prototype.Setup = function (propSet) {
-        console.log(this.Get("GetName")+": SISAccountEntryAppletPM:      Setup method reached.");
         SiebelAppFacade.SISAccountEntryAppletPM.superclass.Setup.apply(this, arguments);
        }
 
-       SISAccountEntryAppletPM.prototype.statusCheck = (control, value) => {
+       // почему вызывается 3 раза?
+       SISAccountEntryAppletPM.prototype.statusCheck = function (control, value) {
            if (control.GetFieldName() == "Account Status" && value != "Active") {
-               alert("Warning! Client status is not active!");
+            //    alert("Warning! Client status is not active!");
+                this.SetProperty("statusNotActive", true);
+           } else {
+                this.SetProperty("statusNotActive", false);
            }
        }
    
