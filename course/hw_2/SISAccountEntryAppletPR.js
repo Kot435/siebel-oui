@@ -1,7 +1,7 @@
 if (typeof(SiebelAppFacade.SISAccountEntryAppletPR) === "undefined") {
 
     SiebelJS.Namespace("SiebelAppFacade.SISAccountEntryAppletPR");
-    define("siebel/custom/SISAccountEntryAppletPR", ["siebel/phyrenderer"],
+    define("siebel/custom/course/hw_2/SISAccountEntryAppletPR", ["siebel/phyrenderer"],
         function() {
             SiebelAppFacade.SISAccountEntryAppletPR = (function() {
 

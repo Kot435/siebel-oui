@@ -1,7 +1,7 @@
 if (typeof(SiebelAppFacade.SISAccountEntryAppletPM) === "undefined") {
 
     SiebelJS.Namespace("SiebelAppFacade.SISAccountEntryAppletPM");
-    define("siebel/custom/SISAccountEntryAppletPM", ["siebel/pmodel"],
+    define("siebel/custom/course/hw_2/SISAccountEntryAppletPM", ["siebel/pmodel"],
         function() {
             SiebelAppFacade.SISAccountEntryAppletPM = (function() {
 
