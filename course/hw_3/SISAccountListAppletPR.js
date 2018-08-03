@@ -16,39 +16,22 @@ if (typeof(SiebelAppFacade.SISAccountListAppletPR) === "undefined") {
 
                 SISAccountListAppletPR.prototype.Init = function() {
                     SiebelAppFacade.SISAccountListAppletPR.superclass.Init.apply(this, arguments);
-
-                    // this.GetPM().AddProperty("accWarning", (this.GetPM().Get("GetBusComp").GetFieldValue("Account Status") == "Active" && this.GetPM().Get("GetBusComp").GetFieldValue("Type") != "Customer") ? true : false);
-                    this.GetPM().AddProperty("accWarning", "N");
-                    this.GetPM().AddMethod("FieldChange", this.OnFieldChange, { sequence: false, scope: this });
-                    this.AttachPMBinding("accWarning", this.onFieldChangeHandler);
                 }
 
                 SISAccountListAppletPR.prototype.BindData = function(bRefresh) {
                     SiebelAppFacade.SISAccountListAppletPR.superclass.BindData.apply(this, arguments);
 
-                    this.GetPM().Get("GetRecordSet").forEach((rowNum, index) => {
-                        if (this.GetPM().Get("accWarning") == "Y") {
-                        // if (rowNum["Account Status"] == 'Active' && rowNum["Type"] != 'Customer') {
-                                $("#"+this.GetPM().Get("GetPlaceholder"))
-                                    .find("tr[id="+(Number(index)+1)+"]")
-                                    .find(`td[id*=${this.GetPM().Get("GetPlaceholder")}_Name]`)
-                                    .css("background-color", "red")
-                        }
-                    });
-                }
-
-                SISAccountListAppletPR.prototype.OnFieldChange = function(control, value) {
-                    console.log("Field change!!!!!!!!!!!!!!!!!");
-                    if ((control.GetName() == "Action Status" && value == "Active") || (control.GetName() == "Type" && value != "Customer")) {
-                        this.GetPM().SetProperty("accWarning", (this.GetPM().Get("GetBusComp").GetFieldValue("Account Status") == "Active" && this.GetPM().Get("GetBusComp").GetFieldValue("Type") != "Customer") ? "Y" : "N")
-                        console.log(`IN IF ${this.GetPM('accWarning') == "Y"}`)
-                    }
+                    this.onFieldChangeHandler();
                 }
 
                 SISAccountListAppletPR.prototype.onFieldChangeHandler = function() {
+
+                    console.log(`accState = ${this.GetPM().Get("accState")}`);
+                    console.log(`accType = ${this.GetPM().Get("accType")}`);
+
                     this.GetPM().Get("GetRecordSet").forEach((rowNum, index) => {
-                        if (this.GetPM().Get("accWarning") == "Y") {
-                        // if (rowNum["Account Status"] == 'Active' && rowNum["Type"] != 'Customer') {
+                        // if (this.GetPM().Get("accState") == "Active" && this.GetPM().Get("accType") != "Customer") {
+                        if (rowNum["Account Status"] == 'Active' && rowNum["Type"] != 'Customer') {
                                 $("#"+this.GetPM().Get("GetPlaceholder"))
                                     .find("tr[id="+(Number(index)+1)+"]")
                                     .find(`td[id*=${this.GetPM().Get("GetPlaceholder")}_Name]`)
