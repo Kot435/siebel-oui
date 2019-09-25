@@ -1,0 +1,294 @@
+function UpdateRetrieveLeavingWork(SR_Id)
+{
+	
+//TheApplication().GetService("Ex Log Error Data").LogErrData("Applet", this.Name(), "Function", "UpdateRetrieveLeavingWork", "Debug", "Start wf: KOT Retrieve Leaving Work Docs WS WF", "");
+	var loginId;
+	var outPS;
+	var intPS;
+	var bs;
+	var contact_ssn;
+	var NoExist = TheApplication().InvokeMethod("LookupValue","KOT_KOT_PROCESS_STATUS", "NoExist");
+	var Closed = TheApplication().InvokeMethod("LookupValue","KOT_KOT_PROCESS_STATUS", "Closed");
+	var Waiting = TheApplication().InvokeMethod("LookupValue","KOT_KOT_PROCESS_STATUS", "Waiting");
+	var Active = TheApplication().InvokeMethod("LookupValue","KOT_KOT_PROCESS_STATUS", "Active");
+	var bo:BusObject;
+	var CheckListBc:BusComp;
+	var SUG_MISMACH = "";
+	var TAR_MIFTUACH = "";
+	var MIS_MISMACH = "";
+	var SUG_TAHALICH = "";
+	var STATUS_TAHALICH = "";
+	var SIBAT_HAMTANA = "";
+	var MisKolektiv = "";
+	var MisKolektiv_Old = "";
+
+	try
+	{
+		loginId = TheApplication().GetProfileAttr("Login Name").toLowerCase();
+		contact_ssn = this.BusComp().ParentBusComp().GetFieldValue("Insured SSN");///"0399"
+
+//TheApplication().GetService("Ex Log Error Data").LogErrData("Applet", this.Name(), "Function", "UpdateRetrieveLeavingWork", "Debug", "loginId :"+loginId, "");
+//TheApplication().GetService("Ex Log Error Data").LogErrData("Applet", this.Name(), "Function", "UpdateRetrieveLeavingWork", "Debug", "contact_ssn :"+contact_ssn, "");
+
+		//ACTIVATE BO BC
+		bo = TheApplication().GetBusObject("KOT Redemption Request");
+		CheckListBc = bo.GetBusComp("KOT Redemption Leaving Work");
+
+		with(CheckListBc)
+		{	
+			ActivateField("Activity Id");
+			ActivateField("Collective Number");
+			ActivateField("161 Form Scanning Date");
+			ActivateField("161A Form Scanning Date");
+			ActivateField("Clerk Approval Form Scanning Date");
+			ActivateField("Savings Release Doc Scanning Date");
+			ActivateField("KOT Process Status");
+			ActivateField("161 Form Filling Date");
+			ActivateField("161 Form Id");
+			ActivateField("161A Insured Guidelines Id");
+			ActivateField("Clerk Approval Id");
+			ActivateField("Savings Release Doc Id");
+
+			SetViewMode(AllView);
+			InvokeMethod("SetAdminMode","TRUE");
+			ClearToQuery();
+			SetSearchExpr("[Service Request Id] = '" + SR_Id + "'");
+			ExecuteQuery(ForwardBackward);
+			var isRecord = FirstRecord();
+//TheApplication().GetService("Ex Log Error Data").LogErrData("Applet", this.Name(), "Function", "UpdateRetrieveLeavingWork", "Debug", "isRecord: "+isRecord, "");
+			while(isRecord)
+			{		
+				MisKolektiv = ToNumber(GetFieldValue("Collective Number"));
+
+								
+				if(MisKolektiv_Old != MisKolektiv)
+				{
+					MisKolektiv_Old = MisKolektiv;
+					bs = TheApplication().GetService("Workflow Process Manager");
+					outPS = TheApplication().NewPropertySet();
+					intPS = TheApplication().NewPropertySet();
+			
+					intPS.SetProperty("user_id", loginId);
+					intPS.SetProperty("system_id", "CRM");
+					intPS.SetProperty("mis_zehut", contact_ssn);
+					intPS.SetProperty("kod_zehut", "æ");
+					intPS.SetProperty("Collective", MisKolektiv);
+					intPS.SetProperty("tran_id", this.BusComp().GetFieldValue("Id"));
+					intPS.SetProperty("Object Id",this.BusComp().GetFieldValue("Id"));
+			
+					intPS.SetProperty("ProcessName", "KOT Retrieve Leaving Work Docs WS WF");
+					bs.InvokeMethod("RunProcess", intPS, outPS);
+					
+					if(outPS==null || outPS =="")
+					{
+					   TheApplication().GetService("Ex Log Error Data").LogErrData("Applet", this.Name(), "Function", "UpdateRetrieveLeavingWork", "Log", "Error No outPS", "");
+					}
+				}
+
+//TheApplication().GetService("KOT Data Import Service 2").logPropSet(outPS, "outPS.txt");
+				
+				var WFStatus = outPS.GetChild(0).GetChild(0);
+				for (var e = 0; e < WFStatus.GetChildCount(); e++)
+				{
+//TheApplication().GetService("KOT Data Import Service 2").logPropSet(WFStatus, "WFStatus.txt");
+					if(WFStatus.GetChild(e).GetType() == "ESBServiceResponseMetKOTta")
+					{
+//TheApplication().GetService("KOT Data Import Service 2").logPropSet(WFStatus.GetChild(e), "WFStatus.GetChild.txt");						
+						if(WFStatus.GetChild(e).GetChild(0).GetValue() != "Success") 
+						{
+							TheApplication().GetService("Ex Log Error Data").LogErrData("Applet", this.Name(), "Function", "UpdateRetrieveLeavingWork", "Log", "Interface Error: " + WFStatus.GetChild(e).GetChild(0).GetValue(), "");
+							goto NextRecord;
+						}
+					}
+				}
+
+				var psElements = outPS.GetChild(0).GetChild(0).GetChild(0).GetChild(0).GetChild(0).GetChild(0);
+			
+				for (var i = 0; i < psElements.GetChildCount(); i++)
+				{
+//TheApplication().GetService("Ex Log Error Data").LogErrData("Applet", this.Name(), "Function", "UpdateRetrieveLeavingWork", "Debug", "psElements: "+psElements, "");
+					
+					var psElement = psElements.GetChild(i);
+					for (var j = 0; j < psElement.GetChildCount(); j++)
+					{
+//TheApplication().GetService("Ex Log Error Data").LogErrData("Applet", this.Name(), "Function", "UpdateRetrieveLeavingWork", "Debug", "psElement: "+psElement, "");
+						
+						var psElementChild = psElement.GetChild(j)
+						var sTypeName = psElementChild.GetType();
+						var sTypeValue = psElementChild.GetValue();
+
+						if(sTypeName == "Docs" || sTypeName == "Processes")
+						{
+						   	for (var k = 0; k < psElementChild.GetChildCount(); k++)
+							{
+							   	var psObject = psElementChild.GetChild(k);
+//TheApplication().GetService("Ex Log Error Data").LogErrData("Applet", this.Name(), "Function", "UpdateRetrieveLeavingWork", "Debug", "psObject: "+psObject, "");
+//TheApplication().GetService("Ex Log Error Data").LogErrData("Applet", this.Name(), "Function", "UpdateRetrieveLeavingWork", "Debug", "sTypeName: "+sTypeName + " sTypeValue: "+sTypeValue, "");
+							
+								for (var v = 0; v < psObject.GetChildCount(); v++)
+								{
+									var sXmlTag = psObject.GetChild(v).GetType();
+
+									switch (sXmlTag)
+									{
+										case "SUG_MISMACH":
+											SUG_MISMACH = psObject.GetChild(v).GetValue("SUG_MISMACH");
+											break;
+
+										case "TAR_MIFTUACH":
+											TAR_MIFTUACH = psObject.GetChild(v).GetValue("TAR_MIFTUACH");
+											break;
+
+										case "MIS_MISMACH":
+											MIS_MISMACH = psObject.GetChild(v).GetValue("MIS_MISMACH");
+											break;
+
+										case "SUG_TAHALICH":
+											SUG_TAHALICH = psObject.GetChild(v).GetValue("SUG_TAHALICH");
+											break;
+										
+										case "STATUS_TAHALICH":
+											STATUS_TAHALICH = psObject.GetChild(v).GetValue("STATUS_TAHALICH");
+											break;
+										
+										case "SIBAT_HAMTANA":
+											SIBAT_HAMTANA = psObject.GetChild(v).GetValue("SIBAT_HAMTANA");
+											break;
+						
+										default:
+											break;
+									}
+
+								}
+								
+								if(TAR_MIFTUACH != "")
+								{
+									TAR_MIFTUACH = TAR_MIFTUACH.toString();
+									TAR_MIFTUACH = TAR_MIFTUACH.substring(3,5) + "/" + TAR_MIFTUACH.substring(0,2)+ "/" + TAR_MIFTUACH.substring(6,10);
+								}
+
+//TheApplication().GetService("Ex Log Error Data").LogErrData("Applet", this.Name(), "Function", "UpdateRetrieveLeavingWork", "Debug", "TAR_MIFTUACH :"+TAR_MIFTUACH, "");
+//TheApplication().GetService("Ex Log Error Data").LogErrData("Applet", this.Name(), "Function", "UpdateRetrieveLeavingWork", "Debug", "SUG_MISMACH :"+SUG_MISMACH, "");
+//TheApplication().GetService("Ex Log Error Data").LogErrData("Applet", this.Name(), "Function", "UpdateRetrieveLeavingWork", "Debug", "MIS_MISMACH :"+MIS_MISMACH, "");
+//TheApplication().GetService("Ex Log Error Data").LogErrData("Applet", this.Name(), "Function", "UpdateRetrieveLeavingWork", "Debug", "SUG_TAHALICH :"+SUG_TAHALICH, "");
+//TheApplication().GetService("Ex Log Error Data").LogErrData("Applet", this.Name(), "Function", "UpdateRetrieveLeavingWork", "Debug", "STATUS_TAHALICH:"+STATUS_TAHALICH, "");
+//TheApplication().GetService("Ex Log Error Data").LogErrData("Applet", this.Name(), "Function", "UpdateRetrieveLeavingWork", "Debug", "SIBAT_HAMTANA:"+SIBAT_HAMTANA, "");								
+																						
+								//SUG_MISMACH
+								if(SUG_MISMACH == "500")
+								{
+									SetFieldValue("161 Form Scanning Date", TAR_MIFTUACH);
+									SetFieldValue("161 Form Id", MIS_MISMACH);
+								}				
+								else if(SUG_MISMACH == "1527")
+								{
+									SetFieldValue("161A Form Scanning Date", TAR_MIFTUACH);
+									SetFieldValue("161A Insured Guidelines Id", MIS_MISMACH);			
+								}				
+								else if(SUG_MISMACH == "510")
+								{
+									SetFieldValue("Clerk Approval Form Scanning Date", TAR_MIFTUACH);
+									SetFieldValue("Clerk Approval Id", MIS_MISMACH);			
+								}				
+								else if(SUG_MISMACH == "501")
+								{
+									SetFieldValue("Savings Release Doc Scanning Date", TAR_MIFTUACH);
+									SetFieldValue("Savings Release Doc Id", MIS_MISMACH);			
+								}
+//TheApplication().GetService("Ex Log Error Data").LogErrData("Applet", this.Name(), "Function", "UpdateRetrieveLeavingWork", "Debug", "Set Field Value OK", "");												
+								//SUG_TAHALICH && STATUS_TAHALICH
+								if(SUG_TAHALICH == "500" && STATUS_TAHALICH == "3")
+								{
+									//pail
+									var oBCPick = CheckListBc.GetPicklistBusComp("KOT Process Status");
+									with (oBCPick)
+									{
+										ClearToQuery();
+										ActivateField("Value");
+										SetSearchSpec("Value", Active);
+										ExecuteQuery(ForwardOnly);
+										if(FirstRecord())
+										Pick();
+									}
+								}								
+								else if(SUG_TAHALICH == "500" && STATUS_TAHALICH == "5")
+								{
+				                       //sagur
+								     var oBCPick1 = CheckListBc.GetPicklistBusComp("KOT Process Status");
+									with (oBCPick1)
+									{
+										ClearToQuery();
+										ActivateField("Value");
+										SetSearchSpec("Value", Closed);
+										ExecuteQuery(ForwardOnly);
+										if(FirstRecord())
+										Pick();
+									}
+								}				
+								else if(SUG_TAHALICH == "500" && STATUS_TAHALICH == "4" && SIBAT_HAMTANA =="0")
+								{
+				                       //bemtana
+								     var oBCPick2 = CheckListBc.GetPicklistBusComp("KOT Process Status");
+									with (oBCPick2)
+									{
+										ClearToQuery();
+										ActivateField("Value");
+										SetSearchSpec("Value", Waiting);
+										ExecuteQuery(ForwardOnly);
+										if(FirstRecord())
+										Pick();
+									}
+								}				
+								else if(SUG_TAHALICH != "500")
+								{
+				                       //lo kayam
+								     var oBCPick3 = CheckListBc.GetPicklistBusComp("KOT Process Status");
+									with (oBCPick3)
+									{
+										ClearToQuery();
+										ActivateField("Value");
+										SetSearchSpec("Value", NoExist);
+										ExecuteQuery(ForwardOnly);
+										if(FirstRecord())
+										Pick();
+									}
+								}
+
+								SUG_MISMACH = "";
+								TAR_MIFTUACH = "";
+								MIS_MISMACH = "";
+								SUG_TAHALICH = "";
+								STATUS_TAHALICH = "";
+								SIBAT_HAMTANA = "";
+							}//for k:psElementChild
+						}//if sTypeName=Docs or Processes
+					}//for j:psElement	
+				}//for i:psElements	
+				
+				WriteRecord();
+//TheApplication().GetService("Ex Log Error Data").LogErrData("Applet", this.Name(), "Function", "UpdateRetrieveLeavingWork", "Debug", "WriteRecord OK", "");												
+NextRecord:				
+				isRecord = NextRecord();
+			}//end While
+			
+		}//end with
+
+}//end try
+	catch(e)
+	{
+		TheApplication().GetService("Ex Log Error Data").LogErrData("Applet", this.Name(), "Function", "UpdateRetrieveLeavingWork", "Error", e.toString(), "");
+	}	
+		finally
+		{
+			bs = null;
+			CheckListBc = null;
+			outPS = null;
+			intPS = null;
+			loginId = null;
+			contact_ssn = null;
+			oBCPick3 = null;
+			oBCPick2 = null;
+			oBCPick1 = null;
+			oBCPick = null;
+		}
+}
