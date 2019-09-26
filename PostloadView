@@ -1,0 +1,171 @@
+if (typeof (SiebelAppFacade.FNXPostloadView) == "undefined") {
+    Namespace('SiebelAppFacade.FNXPostloadView');
+
+    (function(){
+        SiebelApp.EventManager.addListner( "postload", OnPostload, this );
+        function OnPostload( ){
+			
+            try
+			{
+				SiebelApp.S_App.SetProfileAttr("Connectivity", "Ofline");
+				//tooltip
+				$("div:not(.AppletButtons)").removeAttr("title");
+						
+				//Tab Labels
+				var fnx_title = SiebelApp.S_App.GetAppTitle();
+				document.title = fnx_title;
+				SiebelApp.S_App.SetProfileAttr("ServerName", fnx_title);
+				
+				//Hide panel
+				$(".siebui-toolbar-toggle-communication-panel").hide();
+				$(".siebui-icon-emailcancel").hide();
+				
+				var view = SiebelApp.S_App.GetActiveView();
+				var viewName = view.GetName();
+				//SiebelJS.Log("FNXLoaded..viewName..."+viewName);
+				
+				if(viewName == "Communication Detail - Response View")
+				{
+					SiebelJS.Log("EMAIL HAIDE..");
+					$(".siebui-icon-emailcancel").hide();
+				}
+				
+				//color field
+				//$('[aria-labelledby="FNX_Position_Name_Label"]').css({'background': '#ffffff', 'color': '#006699!important', 'border-color': '#ffffff!important', 'border': '0px solid #ffffff'});
+				
+			    $('[aria-labelledby="FNX_Position_Name_Label"]').css("background", "white");
+				$('[aria-labelledby="FNX_Position_Name_Label"]').css("font-weight", "600");
+				$('[aria-labelledby="FNX_Position_Name_Label"]').css("border-color", "#ffffff!important");
+				$('[aria-labelledby="FNX_Position_Name_Label"]').css("color", "#006699!important");
+				
+				
+				if(viewName == "FNX MS Contact image View" || viewName == "FNX MS Insured Redemption Image View"
+					|| viewName == "FNX MS Insured All Systems Open SR View" || viewName == "FNX MS Insured Messages View"
+					|| viewName == "FNX MS Sales Campaing View" || viewName == "FNX MS Archive View"
+					|| viewName == "FNX MS Contact Note View" || viewName == "FNX MS Internet Site Self Service Action View"
+					|| viewName == "FNX MS Contact Action View" || viewName == "FNX MS Contact Accessibility View"
+					|| viewName == "FNX MS ADA View" || viewName == "FNX MS Document ADA View"
+					|| viewName == "FNX MS IFN View" || viewName == "FNX Contact Nursing Claims Events View"
+					|| viewName == "FNX MS Mobility Image View" || viewName == "FNX Contact Nursing Claims Events Requests View"
+					|| viewName == "FNX MS Insured Elemantary Claims View" || viewName == "FNX MS Contact All Claims Events View")			  
+			    {
+					SiebelJS.Log("FNXLoaded hide...");
+					$('#Contact_Channels_Label').parent().hide();
+					$('[aria-labelledby="Contact_Channels_Label"]').parent().hide();
+					$('[aria-labelledby="InterfaceEscalation_Label"]').parent().hide();
+					//color		
+					//$('[aria-labelledby="General_Action_Label"]').css("background-color", "#ededed");
+					//$('[aria-labelledby="SystemsConnection_Label"]').css("background-color", "#ededed");
+					$('[aria-labelledby="General_Action_Label"]').css("color", "#ff6300");
+					$('[aria-labelledby="SystemsConnection_Label"]').css("color", "#ff6300");				
+				}
+				//RC 080119
+				else if(viewName == "FNX Redemption Insured Check List View" || viewName == "FNX Redemption Insured Picture View"
+					|| viewName == "FNX Redemption Request Insured Audit Trail View" || viewName == "FNX Redemption Request Insured Action Mail View"
+					|| viewName == "FNX Redemption Request Insured Details View" || viewName == "FNX Redemption Request Insured Document View"
+					|| viewName == "FNX Redemption Request Insured Statement View")			  
+			    {
+					//SiebelJS.Log("FNXLoaded...redemprion");
+					$('#Contact_Channels_Label').parent().show();
+					$('[aria-labelledby="Contact_Channels_Label"]').parent().show();
+					$('[aria-labelledby="InterfaceEscalation_Label"]').parent().hide();
+					//color		
+					$('[aria-labelledby="General_Action_Label"]').css("color", "#ff6300");
+					$('[aria-labelledby="SystemsConnection_Label"]').css("color", "#ff6300");
+					$('[aria-labelledby="Contact_Channels_Label"]').css("color", "#ff6300");					
+				}
+				//RC 080119 - End
+				else if(viewName == "FNX Prospect Activities View" || viewName == "FNX Prospect Response View"
+						|| viewName == "FNX Prospect Image View" || viewName == "FNX Prospect SR View" 
+						|| viewName == "FNX Prospect Uniface View" || viewName == "FNX Prospect Campaign Members View")		
+				{
+					SiebelJS.Log("FNXLoaded hide...");
+					$('#Contact_Channels_Label').parent().hide();
+					$('[aria-labelledby="Contact_Channels_Label"]').parent().hide();
+					$('[aria-labelledby="InterfaceEscalation_Label"]').parent().hide();
+					//color		
+					//$('[aria-labelledby="General_Action_Label"]').css("background-color", "#ededed");
+					//$('[aria-labelledby="SystemsConnection_Label"]').css("background-color", "#ededed");
+					$('[aria-labelledby="General_Action_Label"]').css("color", "#ff6300");
+					$('[aria-labelledby="SystemsConnection_Label"]').css("color", "#ff6300");
+				}
+				else
+				{
+					SiebelJS.Log("FNXLoaded show...");
+					$('#Contact_Channels_Label').parent().show();
+					$('[aria-labelledby="Contact_Channels_Label"]').parent().show();
+					$('[aria-labelledby="InterfaceEscalation_Label"]').parent().show();
+					//color
+					$('[aria-labelledby="General_Action_Label"]').css("color", "#ff6300");
+					$('[aria-labelledby="SystemsConnection_Label"]').css("color", "#ff6300");
+					$('[aria-labelledby="Contact_Channels_Label"]').css("color", "#ff6300");
+					$('[aria-labelledby="InterfaceEscalation_Label"]').css("color", "#ff6300");
+				}
+					
+				//CALL Toolbar
+				/*
+				if(SiebelApp.S_App.GetProfileAttr("FNXPhone_IDENTIFY_OFF")!= "Y") 
+				{
+					$('.fnx-identity-cancel-btn').hide();
+					//SiebelJS.Log("1...");
+				}
+				if(SiebelApp.S_App.GetProfileAttr("FNXPhone_IDENTIFY_ON")!= "Y")
+				{
+					$('.fnx-identity-enable-btn').hide();
+					//SiebelJS.Log("2...");
+				}
+				if(SiebelApp.S_App.GetProfileAttr("FNXPhone_RECEPTION")!= "Y")
+				{
+					$('.fnx-goto-face-to-face-btn').hide();
+					//SiebelJS.Log("3...");
+				}
+				if(SiebelApp.S_App.GetProfileAttr("FNXPhone_LAST_CALL")!= "Y")
+				{
+					$('.fnx-goto-last-call-btn').hide();
+					//SiebelJS.Log("4...");
+				}
+				if(SiebelApp.S_App.GetProfileAttr("FNXPhone_INTERCEPTION_OFF")!= "Y")
+				{
+					$('.fnx-cancel-delayed-mode-btn').hide();
+					//SiebelJS.Log("5...");
+				}
+				if(SiebelApp.S_App.GetProfileAttr("FNXPhone_INTERCEPTION_ON")!= "Y")
+				{
+					$('.fnx-set-delayed-mode-btn').hide();
+					//SiebelJS.Log("6...");
+				}
+				if(SiebelApp.S_App.GetProfileAttr("FNXPhone_CALL_FORWARD")!= "Y")
+				{
+					$('.fnx-forward-call-btn').hide();
+					//SiebelJS.Log("7...");
+				}
+				if(SiebelApp.S_App.GetProfileAttr("FNXPhone_END_TREAT")!= "Y")
+				{
+					$('.fnx-close-last-call-action-btn').hide();
+					//SiebelJS.Log("8...");
+				}
+				if(SiebelApp.S_App.GetProfileAttr("FNXPhone_CALL_INSURED")!= "Y")
+				{
+					$('.fnx-outbound-call-btn').hide();
+					//SiebelJS.Log("9...");
+				}
+				if(SiebelApp.S_App.GetProfileAttr("FNXPhone_LOAD_INSURED")!= "Y")
+				{
+					$('.fnx-receive-last-call').hide();
+					//SiebelJS.Log("10...");
+				}
+				if(SiebelApp.S_App.GetProfileAttr("FNXPhone_DIGITAL_CALL")!= "Y")
+				{
+					$('.fnx-identity-lastcall-btn').hide();
+					//SiebelJS.Log("11...");
+				}
+				*/
+				SiebelJS.Log("FNXLoaded end...");
+            }//end try
+            catch(error)
+            {
+                //No-Op
+            }
+        }
+    }());
+}
